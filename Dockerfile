@@ -1,7 +1,7 @@
 # Use an official Node.js LTS image
 FROM node:18-alpine
 
-# Set working directory inside the container
+# Set working directory inside the container # some update
 WORKDIR /usr/src/app
 
 # Copy package files first (better layer caching)
