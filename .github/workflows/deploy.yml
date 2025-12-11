@@ -6,49 +6,118 @@ on:
 
 jobs:
   deploy:
-    # runs-on: ubuntu-latest # some update
     runs-on: self-hosted
 
     steps:
-      - name: Checking the username
-        run: whoami
-        
-      - name: Checkout (for completeness, not used on server)
+      # - name: Show runner user (debug)
+      #   run: |
+      #     echo "Runner user:"
+      #     whoami
+      #     id
+
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Deploy on VPS via SSH
-        uses: appleboy/ssh-action@v1.2.0
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          port: ${{ secrets.VPS_SSH_PORT }}
-          script: |
+      - name: Deploy on VPS via raw SSH
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_REPO_DIR: ${{ secrets.VPS_REPO_DIR }}
+          SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_PORT: ${{ secrets.VPS_SSH_PORT }}
+        run: |
+          set -e
+
+          # Prepare SSH key
+          mkdir -p ~/.ssh
+          echo "$SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+
+          # Optional: disable host key checking for now (can be hardened later)
+          printf "Host *\n  StrictHostKeyChecking no\n" >> ~/.ssh/config
+
+          # Run remote commands on VPS
+          ssh -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" << 'EOF'
             set -e
 
-            # 1. Ensure repo exists
-            if [ ! -d "${{ secrets.VPS_REPO_DIR }}/.git" ]; then
+            if [ ! -d "${VPS_REPO_DIR}/.git" ]; then
               echo "Cloning repo for the first time..."
-              git clone git@github.com:omaradam61/crud-app.git "${{ secrets.VPS_REPO_DIR }}"
-
+              git clone git@github.com:omaradam61/crud-app.git "${VPS_REPO_DIR}"
             fi
 
-            cd "${{ secrets.VPS_REPO_DIR }}"
+            cd "${VPS_REPO_DIR}"
 
-            # 2. Pull latest code for the branch that triggered the workflow
             echo "Pulling latest code..."
             git fetch origin
-            git checkout ${{ github.ref_name }}
-            git pull origin ${{ github.ref_name }}
+            git checkout ${GITHUB_REF_NAME}
+            git pull origin ${GITHUB_REF_NAME}
 
-            # 3. Login to registry if you later push images (optional)
-            # echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
-
-            # 4. Bring up services with Docker Compose
             echo "Recreating containers..."
             docker compose down --remove-orphans
-            # Build images on the VPS and start in background
             docker compose up -d --build
 
-            # 5. (Optional) Clean up dangling images
             docker image prune -f
+          EOF
+
+
+
+
+
+
+
+
+###################################################################
+# name: Deploy to VPS
+
+# on:
+#   push:
+#     branches: [ "main" ]
+
+# jobs:
+#   deploy:
+#     # runs-on: ubuntu-latest # some update
+#     runs-on: self-hosted
+
+#     steps:
+#       - name: Checking the username
+#         run: whoami
+
+#       - name: Checkout (for completeness, not used on server)
+#         uses: actions/checkout@v4
+
+#       - name: Deploy on VPS via SSH
+#         uses: appleboy/ssh-action@v1.2.0
+#         with:
+#           host: ${{ secrets.VPS_HOST }}
+#           username: ${{ secrets.VPS_USER }}
+#           key: ${{ secrets.VPS_SSH_KEY }}
+#           port: ${{ secrets.VPS_SSH_PORT }}
+#           script: |
+#             set -e
+
+#             # 1. Ensure repo exists
+#             if [ ! -d "${{ secrets.VPS_REPO_DIR }}/.git" ]; then
+#               echo "Cloning repo for the first time..."
+#               git clone git@github.com:omaradam61/crud-app.git "${{ secrets.VPS_REPO_DIR }}"
+
+#             fi
+
+#             cd "${{ secrets.VPS_REPO_DIR }}"
+
+#             # 2. Pull latest code for the branch that triggered the workflow
+#             echo "Pulling latest code..."
+#             git fetch origin
+#             git checkout ${{ github.ref_name }}
+#             git pull origin ${{ github.ref_name }}
+
+#             # 3. Login to registry if you later push images (optional)
+#             # echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
+#             # 4. Bring up services with Docker Compose
+#             echo "Recreating containers..."
+#             docker compose down --remove-orphans
+#             # Build images on the VPS and start in background
+#             docker compose up -d --build
+
+#             # 5. (Optional) Clean up dangling images
+#             docker image prune -f
