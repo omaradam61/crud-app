@@ -10,10 +10,9 @@ jobs:
     runs-on: self-hosted
 
     steps:
-      - name: Checking the user on self-hosted runner
+      - name: Checking the username
         run: whoami
-
-    steps:
+        
       - name: Checkout (for completeness, not used on server)
         uses: actions/checkout@v4
 
