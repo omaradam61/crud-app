@@ -10,6 +10,10 @@ jobs:
     runs-on: self-hosted
 
     steps:
+      - name: Checking the user on self-hosted runner
+        run: whoami
+
+    steps:
       - name: Checkout (for completeness, not used on server)
         uses: actions/checkout@v4
 
@@ -26,7 +30,8 @@ jobs:
             # 1. Ensure repo exists
             if [ ! -d "${{ secrets.VPS_REPO_DIR }}/.git" ]; then
               echo "Cloning repo for the first time..."
-              git clone https://github.com/${{ github.repository }} "${{ secrets.VPS_REPO_DIR }}"
+              git clone git@github.com:omaradam61/crud-app.git "${{ secrets.VPS_REPO_DIR }}"
+
             fi
 
             cd "${{ secrets.VPS_REPO_DIR }}"
