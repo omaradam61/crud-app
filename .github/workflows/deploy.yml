@@ -136,17 +136,16 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Set up SSH Key and Deploy my App on Server
-      uses: appleboy/ssh-action@v1.0.3 # Use a popular SSH action # just pushing ###efdf | whahtever
+    - name: SSH and deploy
+      uses: appleboy/ssh-action@v1.0.3
       with:
         host: ${{ secrets.VPS_HOST }}
         username: ${{ secrets.VPS_USER }}
+        port: ${{ secrets.VPS_SSH_PORT }}
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
-          cd ${{ secrets.VPS_REPO_DIR }}
-          git clone https://github.com/omaradam61/crud-app.git 
+          cd /home/ubuntu
+          rm -rf crud-app || true
+          git clone https://github.com/omaradam61/crud-app.git
           cd crud-app
           ls
-
-          #git pull origin main
-          # Add other build/install commands here (e.g., npm install, composer install, npm run build)
