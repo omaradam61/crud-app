@@ -137,7 +137,7 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Set up SSH Key and Deploy my App on Server
-      uses: appleboy/ssh-action@v1.0.3 # Use a popular SSH action # just pushing ###efdf
+      uses: appleboy/ssh-action@v1.0.3 # Use a popular SSH action # just pushing ###efdf | whahtever
       with:
         host: ${{ secrets.VPS_HOST }}
         username: ${{ secrets.VPS_USER }}
