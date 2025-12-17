@@ -152,9 +152,11 @@ jobs:
             git clean -fd
             git pull origin main
           else
-            echo "Repo not found. Cloning..."
+            echo "Repo not found or not initialized. Cloning fresh..."
+            rm -rf ./* ./.??* || true
             git clone https://github.com/omaradam61/crud-app.git .
           fi
-
+          
+          source ~/.bashrc || true  # load environment (optional)
           npm install
           npm run build
