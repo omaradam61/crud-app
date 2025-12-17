@@ -156,7 +156,9 @@ jobs:
             rm -rf ./* ./.??* || true
             git clone https://github.com/omaradam61/crud-app.git .
           fi
+          docker compose down --remove-orphans
+          docker compose up -d --build
+          docker image prune -f
           
-          source ~/.bashrc || true  # load environment (optional)
-          npm install
-          npm run build
+
+          
