@@ -9,7 +9,7 @@ jobs:
     runs-on: self-hosted
 
     steps:
-      # - name: Show runner user (debug) added basic runner
+      # - name: Show runner user (debug) added new runner to test it out
       #   run: |
       #     echo "Runner user:"
       #     whoami
