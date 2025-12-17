@@ -143,16 +143,18 @@ jobs:
         username: ${{ secrets.VPS_USER }}
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
-          mkdir -p ${{ secrets.VPS_REPO_DIR }}
-          cd ${{ secrets.VPS_REPO_DIR }}
+          mkdir -p /opt/somnog-app/crud-app
+          cd /opt/somnog-app/crud-app
 
-          if [ ! -d "crud-app/.git" ]; then
-            git clone https://github.com/omaradam61/crud-app.git
-          else
-            cd crud-app
+          if [ -d ".git" ]; then
+            echo "Repo exists. Pulling latest changes..."
+            git reset --hard HEAD
+            git clean -fd
             git pull origin main
+          else
+            echo "Repo not found. Cloning..."
+            git clone https://github.com/omaradam61/crud-app.git .
           fi
 
-          cd crud-app
           npm install
           npm run build
